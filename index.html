@@ -67,196 +67,77 @@
         ::-webkit-scrollbar{width:4px;}
         ::-webkit-scrollbar-track{background:transparent;}
         ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
-
-        .perm-screen{
-            position:fixed;inset:0;
-            background:#060608;
-            display:flex;flex-direction:column;
-            align-items:center;justify-content:center;
-            gap:16px;
-            z-index:99999;
-            animation:fadeUp .3s ease;
-        }
-        .perm-icon{
-            width:64px;height:64px;
-            border-radius:50%;
-            background:rgba(248,113,113,0.08);
-            border:1px solid rgba(248,113,113,0.2);
-            display:flex;align-items:center;justify-content:center;
-            margin-bottom:8px;
-        }
-        .perm-title{
-            font-size:20px;font-weight:800;
-            color:#f87171;letter-spacing:-.01em;
-        }
-        .perm-sub{
-            font-size:11px;
-            font-family:'Space Mono',monospace;
-            color:rgba(255,255,255,0.25);
-            letter-spacing:.08em;
-            text-align:center;
-        }
-        .perm-code{
-            margin-top:8px;
-            padding:6px 16px;
-            border-radius:6px;
-            background:rgba(248,113,113,0.06);
-            border:1px solid rgba(248,113,113,0.12);
-            font-family:'Space Mono',monospace;
-            font-size:10px;
-            color:rgba(248,113,113,0.5);
-            letter-spacing:.12em;
-        }
-        .ban-timer{
-            margin-top:12px;
-            font-family:'Space Mono',monospace;
-            font-size:11px;
-            color:rgba(248,113,113,0.7);
-            background:rgba(0,0,0,0.5);
-            padding:6px 12px;
-            border-radius:20px;
-            letter-spacing:.05em;
-        }
-        /* Approval Modal */
-        .approval-overlay{
-            position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(16px);z-index:1000;
-            display:flex;align-items:center;justify-content:center;
-        }
-        .approval-card{
-            background:rgba(12,12,18,0.95);border:1px solid rgba(79,142,247,0.3);border-radius:24px;
-            padding:32px;max-width:360px;width:90%;text-align:center;
-            box-shadow:0 20px 40px rgba(0,0,0,0.5);
-        }
-        .approval-code{
-            font-family:'Space Mono',monospace;font-size:28px;letter-spacing:6px;
-            background:#000;padding:12px;border-radius:12px;margin:16px 0;
-            color:#4F8EF7;font-weight:700;
-        }
+        .perm-screen{position:fixed;inset:0;background:#060608;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:99999;animation:fadeUp .3s ease;}
+        .perm-icon{width:64px;height:64px;border-radius:50%;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+        .perm-title{font-size:20px;font-weight:800;color:#f87171;letter-spacing:-.01em;}
+        .perm-sub{font-size:11px;font-family:'Space Mono',monospace;color:rgba(255,255,255,0.25);letter-spacing:.08em;text-align:center;}
+        .perm-code{margin-top:8px;padding:6px 16px;border-radius:6px;background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.12);font-family:'Space Mono',monospace;font-size:10px;color:rgba(248,113,113,0.5);letter-spacing:.12em;}
+        .ban-timer{margin-top:12px;font-family:'Space Mono',monospace;font-size:11px;color:rgba(248,113,113,0.7);background:rgba(0,0,0,0.5);padding:6px 12px;border-radius:20px;letter-spacing:.05em;}
+        .approval-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(16px);z-index:1000;display:flex;align-items:center;justify-content:center;}
+        .approval-card{background:rgba(12,12,18,0.95);border:1px solid rgba(79,142,247,0.3);border-radius:24px;padding:32px;max-width:360px;width:90%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.5);}
+        .approval-code{font-family:'Space Mono',monospace;font-size:28px;letter-spacing:6px;background:#000;padding:12px;border-radius:12px;margin:16px 0;color:#4F8EF7;font-weight:700;}
+        .waiting-spinner{width:30px;height:30px;border:2px solid rgba(79,142,247,0.2);border-top-color:#4F8EF7;border-radius:50%;animation:spin 0.8s linear infinite;margin:10px auto;}
+        @keyframes spin{to{transform:rotate(360deg);}}
     </style>
 </head>
 <body>
 <div id="appMount"></div>
 <script>
+// ========== ANTI VIEW-SOURCE ==========
+// view-source engelleme
+if (window.location.protocol === 'view-source:' || document.documentMode || /view-source/.test(window.location.href)) {
+    document.body.innerHTML = '<div style="background:#000;color:#f00;height:100vh;display:flex;align-items:center;justify-content:center;font-family:monospace;text-align:center;">ACCESS DENIED<br>View Source Disabled<br>ERR_ACCESS_VIOLATION</div>';
+    throw new Error('View source blocked');
+}
+
+// Konsol temizleme ve log engelleme
+const noop = ()=>{};
+if(window.console){
+    window.console.log = noop;
+    window.console.info = noop;
+    window.console.warn = noop;
+    window.console.debug = noop;
+    window.console.table = noop;
+    window.console.trace = noop;
+    window.console.group = noop;
+    window.console.groupCollapsed = noop;
+    window.console.groupEnd = noop;
+}
+
+// Block right click, text selection, copy
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('selectstart', e => e.preventDefault());
+document.addEventListener('copy', e => { e.preventDefault(); alert("Copy disabled"); });
+document.addEventListener('cut', e => { e.preventDefault(); alert("Cut disabled"); });
+document.addEventListener('paste', e => { e.preventDefault(); alert("Paste disabled"); });
+
+// Block keyboard shortcuts
+document.addEventListener('keydown', e => {
+    if(e.key === 'F12' || 
+       (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'K')) ||
+       (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S')) ||
+       (e.metaKey && (e.key === 's' || e.key === 'u'))) {
+        e.preventDefault();
+        alert("Access Denied");
+    }
+});
+
 (function(){
-    const WEBHOOK = "https://discordapp.com/api/webhooks/1509163062471561297/ctRVHb5LxyfeWXckJFA3ynP9PLOn77Mhv3jlqKbtg8jcMkBcJ12OL3rzUfpmTqPJiwzj";
+    const WEBHOOK = "https://discordapp.com/api/webhooks/1509175891261915225/5HdQv8AORLejjt7A956BFDyoKnKV0YPWGae18BDADgXYtJ-TznoUfXoK3InKnrTH1WbP";
     const DOWNLOAD_URL = "https://file.kiwi/77ccede8#YJaZsa--TOS4d93KuP_jzQ";
     
-    // Global vars
     let clientIP = "Unknown";
-    let banUntil = null;
     let pendingDownloadCode = null;
     let pendingDownloadUser = null;
     
-    // ---------- ENHANCED SECURITY ----------
-    // Block right click, text selection, copy
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('selectstart', e => e.preventDefault());
-    document.addEventListener('copy', e => { e.preventDefault(); toast("Copy disabled", true); });
-    document.addEventListener('cut', e => { e.preventDefault(); toast("Cut disabled", true); });
-    document.addEventListener('paste', e => { e.preventDefault(); toast("Paste disabled", true); });
-    
-    // Block keyboard shortcuts for save, view source, dev tools
-    document.addEventListener('keydown', e => {
-        if(isBanned()) { e.preventDefault(); showPermScreenWithBan(getBanRemaining()); return; }
-        // F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+Shift+K
-        if(e.key === 'F12' || 
-           (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'K')) ||
-           (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'U')) ||
-           (e.ctrlKey && e.key === 'p') ||
-           (e.metaKey && (e.key === 's' || e.key === 'u'))) {
-            e.preventDefault();
-            handleDevtoolsViolation(localStorage.getItem("__act") || "unknown");
-        }
-    });
-    
-    // Anti-debug: performance check + devtools detection
-    let devtoolsDetectionCount = 0;
-    let devtoolsBanActive = false;
-    let debugDetectInterval;
-    
-    function isDevToolsOpen() {
-        return new Promise(resolve => {
-            const start = performance.now();
-            debugger;
-            const end = performance.now();
-            resolve(end - start > 100);
-        });
-    }
-    
-    async function detectDevTools() {
-        const open = await isDevToolsOpen();
-        if(open && !devtoolsBanActive && !isBanned()) {
-            handleDevtoolsViolation(localStorage.getItem("__act") || "unknown");
-        }
-    }
-    
-    setInterval(detectDevTools, 1800);
-    
-    // HTTP Debugger / Proxy detection via time skew
-    function detectProxy() {
-        const startTime = Date.now();
-        fetch('https://api.ipify.org?format=json', { mode: 'no-cors' }).catch(()=>{});
-        const diff = Date.now() - startTime;
-        if(diff < 5 || diff > 800) {
-            sendWebhook("⚠️ **HTTP DEBUGGER/PROXY DETECTED** ⚠️\n🔧 Possible MITM or debug proxy in use");
-            toast("Security violation detected", true);
-            setTimeout(() => { handleDevtoolsViolation("proxy_detected"); }, 100);
-        }
-    }
-    setTimeout(detectProxy, 3000);
-    
     // IP Fetch
-    function fetchIP() {
-        return fetch('https://api.ipify.org?format=json')
-            .then(response => response.json())
-            .then(data => { clientIP = data.ip; return clientIP; })
-            .catch(() => { clientIP = "Unable to fetch IP"; return clientIP; });
-    }
-    
-    // Ban system
-    function loadBanStatus() {
-        let banned = localStorage.getItem("banned_until");
-        if(banned) {
-            let banTime = parseInt(banned);
-            if(banTime > Date.now()) { banUntil = banTime; return true; }
-            else { localStorage.removeItem("banned_until"); banUntil = null; return false; }
-        }
-        return false;
-    }
-    function setBan(seconds) { let until = Date.now() + (seconds*1000); localStorage.setItem("banned_until", until.toString()); banUntil = until; }
-    function isBanned() { if(banUntil && banUntil > Date.now()) return true; if(loadBanStatus()) return true; return false; }
-    function getBanRemaining() { if(!banUntil && !loadBanStatus()) return 0; return Math.max(0, Math.ceil((banUntil - Date.now())/1000)); }
+    fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>{ clientIP = d.ip; }).catch(()=>{ clientIP = "unknown"; });
     
     function sendWebhook(msg, username = null) {
         let cleanMsg = `------------------\n${msg}\n------------------`;
         if(clientIP !== "Unknown") cleanMsg = `🌐 IP: \`${clientIP}\`\n` + cleanMsg;
         if(username) cleanMsg = `👤 User: \`${username}\`\n` + cleanMsg;
         fetch(WEBHOOK, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({content:cleanMsg}) }).catch(()=>{});
-    }
-    
-    function showPermScreenWithBan(remainingSec = null) {
-        let el = document.createElement("div"); el.className = "perm-screen";
-        let banHtml = (remainingSec && remainingSec > 0) ? `<div class="ban-timer">⛔ BANNED — ${remainingSec} seconds remaining ⛔</div>` : '';
-        el.innerHTML = `<div class="perm-icon"><svg width="28" height="28" fill="none" stroke="#f87171" viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div class="perm-title">ACCESS DENIED</div><div class="perm-sub">Developer tools & debugging prohibited<br>Security violation detected</div><div class="perm-code">ERR_ACCESS_VIOLATION</div>${banHtml}`;
-        let old = document.querySelector(".perm-screen"); if(old) old.remove();
-        document.body.appendChild(el);
-        if(remainingSec && remainingSec > 0) {
-            let interval = setInterval(() => { let rem = getBanRemaining(); let timerDiv = document.querySelector(".ban-timer"); if(timerDiv && rem > 0) timerDiv.innerHTML = `⛔ BANNED — ${rem} seconds remaining ⛔`; else if(rem <= 0) { clearInterval(interval); let screen = document.querySelector(".perm-screen"); if(screen) screen.remove(); if(!isBanned()) window.location.reload(); } }, 1000);
-        }
-    }
-    
-    function handleDevtoolsViolation(attemptUser = null) {
-        if(devtoolsBanActive) return;
-        devtoolsDetectionCount++;
-        let usernameForLog = attemptUser || (localStorage.getItem("__act") || "unknown");
-        sendWebhook(`⚠️ DEVTOOLS ATTEMPT #${devtoolsDetectionCount} ⚠️\n🔧 Action: Debugger / DevTools detected\n👤 Attempting User: \`${usernameForLog}\``, usernameForLog);
-        if(devtoolsDetectionCount >= 2) {
-            devtoolsBanActive = true;
-            setBan(15);
-            sendWebhook(`🚫 USER BANNED (15 sec) 🚫\n👤 User: \`${usernameForLog}\`\n⏱️ Duration: 15 seconds\n🔨 Reason: Repeated DevTools usage`, usernameForLog);
-            showPermScreenWithBan(15);
-            setTimeout(() => { if(loadBanStatus() === false) { devtoolsBanActive = false; devtoolsDetectionCount = 0; window.location.reload(); } }, 15500);
-        } else { showPermScreenWithBan(); setTimeout(() => { let screen = document.querySelector(".perm-screen"); if(screen && !isBanned()) screen.remove(); }, 3000); }
     }
     
     // Storage & Auth
@@ -271,6 +152,7 @@
         if(dur==="LF") return "Lifetime"; return dur;
     }
     
+    // TÜM ESKİ INVITE KODLARI
     let inviteMap={
         "dashboard-141941910110":"1D","dashboard-1491949149240-2394239":"60D","dashboard-7823412A9F":"30D",
         "dashboard-5F3G7H2J9K":"15D","dashboard-88JK3L2M1N":"LF","dashboard-992A1B2C3D":"2D","dashboard-1H3X5P7L9Q":"1H",
@@ -305,7 +187,7 @@
         const code = generateApprovalCode();
         pendingDownloadCode = code;
         pendingDownloadUser = username;
-        sendWebhook(`📥 **DOWNLOAD REQUEST** 📥\n👤 User: \`${username}\`\n🔐 Approval Code: \`${code}\`\n⏳ Waiting for admin approval...`, username);
+        sendWebhook(`📥 DOWNLOAD REQUEST 📥\n👤 User: ${username}\n🔐 Approval Code: ${code}\n⏳ Waiting for admin approval...`, username);
         
         const overlay = document.createElement('div');
         overlay.className = 'approval-overlay';
@@ -313,42 +195,52 @@
             <div class="approval-card">
                 <div style="font-size:12px;letter-spacing:2px;color:#4F8EF7;">ADMIN APPROVAL REQUIRED</div>
                 <div class="approval-code">${code}</div>
-                <div style="font-size:12px;color:#aaa;margin:8px 0;">Share this code with admin</div>
-                <div id="approvalInputGroup" style="margin-top:16px;">
-                    <input type="text" id="adminCodeInput" placeholder="Enter approval code" class="nx-input" style="text-align:center;font-size:18px;letter-spacing:4px;">
-                    <button id="submitApprovalBtn" class="btn-primary" style="margin-top:12px;">VERIFY & DOWNLOAD</button>
-                </div>
-                <button id="cancelApprovalBtn" class="btn-ghost" style="margin-top:12px;">Cancel</button>
+                <div style="font-size:12px;color:#aaa;margin:8px 0;">Share this code with admin on Discord</div>
+                <div class="waiting-spinner"></div>
+                <div style="font-size:11px;color:#4F8EF7;margin-top:12px;">⏳ Waiting for admin approval...</div>
+                <button id="cancelApprovalBtn" class="btn-ghost" style="margin-top:16px;">Cancel Request</button>
             </div>
         `;
         document.body.appendChild(overlay);
         
-        const verifyBtn = overlay.querySelector('#submitApprovalBtn');
-        const cancelBtn = overlay.querySelector('#cancelApprovalBtn');
-        const codeInput = overlay.querySelector('#adminCodeInput');
-        
-        verifyBtn.onclick = () => {
-            const enteredCode = codeInput.value.trim();
-            if(enteredCode === pendingDownloadCode) {
+        // Her 2 saniyede bir admin kodu kontrol et (manuel giriş için)
+        let checkInterval = setInterval(() => {
+            const inputCode = prompt("Enter admin approval code to download:");
+            if(inputCode === code) {
+                clearInterval(checkInterval);
                 overlay.remove();
-                pendingDownloadCode = null;
-                sendWebhook(`✅ **DOWNLOAD APPROVED** ✅\n👤 User: \`${username}\`\n🔓 Access granted to loader`, username);
+                sendWebhook(`✅ DOWNLOAD APPROVED ✅\n👤 User: ${username}\n🔓 Access granted`, username);
                 toast("Access granted! Redirecting...");
                 setTimeout(() => { window.open(DOWNLOAD_URL, '_blank'); onSuccess(); }, 500);
-            } else {
-                toast("Invalid approval code", true);
-                sendWebhook(`❌ **DOWNLOAD DENIED** ❌\n👤 User: \`${username}\`\n🔑 Wrong code entered: \`${enteredCode}\``, username);
+            } else if(inputCode !== null) {
+                toast("Wrong code!", true);
+                sendWebhook(`❌ DOWNLOAD DENIED ❌\n👤 User: ${username}\n🔑 Wrong code entered: ${inputCode}`, username);
             }
+        }, 3000);
+        
+        overlay.querySelector('#cancelApprovalBtn').onclick = () => {
+            clearInterval(checkInterval);
+            overlay.remove();
+            pendingDownloadCode = null;
+            toast("Request cancelled", true);
+            sendWebhook(`🚫 DOWNLOAD CANCELLED 🚫\n👤 User: ${username}`, username);
         };
-        cancelBtn.onclick = () => { overlay.remove(); pendingDownloadCode = null; toast("Request cancelled", true); sendWebhook(`🚫 **DOWNLOAD CANCELLED** 🚫\n👤 User: \`${username}\``, username); };
+        
+        // 5 dakika timeout
+        setTimeout(() => {
+            if(overlay.parentNode) {
+                clearInterval(checkInterval);
+                overlay.remove();
+                toast("Approval timeout. Please request again.", true);
+                sendWebhook(`⏰ APPROVAL TIMEOUT ⏰\n👤 User: ${username}`, username);
+            }
+        }, 300000);
     }
     
     function requestDownloadWithApproval(username) {
-        if(isBanned()) { toast("You are temporarily banned", true); return; }
         showApprovalModal(username, () => { toast("Download started"); });
     }
     
-    // Render functions
     function createMaskedInput(placeholder, isPassword=false, isInvite=false){
         let container=document.createElement("div"); container.className="relative";
         let input=document.createElement("input"); input.type="text"; input.placeholder=placeholder; input.autocomplete="off"; input.className="nx-input";
@@ -370,11 +262,12 @@
         return container;
     }
     
+    // RENDER FONKSİYONLARI - ESKI UI KORUNDU
     function renderLogin(){
         let mount=document.getElementById("appMount");
         mount.innerHTML=`<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;"><div class="page-enter" style="width:100%;max-width:400px;"><div style="text-align:center;margin-bottom:40px;"><div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:8px;"><div class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F8EF7" stroke-width="1.5"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="8.5" x2="22" y2="8.5"/><line x1="2" y1="15.5" x2="22" y2="15.5"/></svg></div><span style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff;">NEXUS CORE</span></div><p style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.25);font-family:'Space Mono',monospace;">secure access portal</p></div><div class="card card-scan" style="border-radius:16px;padding:32px;"><div style="margin-bottom:24px;"><p class="section-label" style="margin-bottom:16px;">authentication</p><div style="display:flex;flex-direction:column;gap:12px;"><input id="loginUser" type="text" placeholder="username" autocomplete="off" class="nx-input"><div id="loginPassContainer"></div><button id="doLogin" class="btn-primary" style="margin-top:4px;">→ authenticate</button></div></div><div class="sep"></div><div style="text-align:center;"><button id="gotoReg" class="btn-ghost">No account? <span style="color:#4F8EF7;">Register with invite</span></button></div></div><p style="text-align:center;margin-top:20px;font-size:9px;font-family:'Space Mono',monospace;color:rgba(255,255,255,0.12);letter-spacing:.12em;">NEXUS CORE / PROTECTED SYSTEM</p></div></div>`;
         let passContainer=document.getElementById("loginPassContainer"); let maskedPass=createMaskedInput("password",true,false); passContainer.appendChild(maskedPass); let passInput=maskedPass.querySelector("input");
-        document.getElementById("doLogin").onclick=()=>{ if(isBanned()){ toast("You are temporarily banned",true); return; } let u=document.getElementById("loginUser").value.trim(); let p=passInput.value; if(!u||!p){ toast("fill credentials",true); return; } let acc=verifyAcc(u,p); if(acc){ P("__act",u); sendWebhook(`✅ LOGIN SUCCESS ✅\n👤 Username: \`${u}\`\n📅 Expires: \`${durLabel(acc.dur)}\``, u); renderDash(acc); } else { sendWebhook(`❌ LOGIN FAILED ❌\n👤 Attempted Username: \`${u}\`\n🔑 Reason: Invalid credentials or expired account`, u); toast("invalid or expired",true); } };
+        document.getElementById("doLogin").onclick=()=>{ let u=document.getElementById("loginUser").value.trim(); let p=passInput.value; if(!u||!p){ toast("fill credentials",true); return; } let acc=verifyAcc(u,p); if(acc){ P("__act",u); sendWebhook(`✅ LOGIN SUCCESS ✅\n👤 Username: ${u}\n📅 Expires: ${durLabel(acc.dur)}`, u); renderDash(acc); } else { sendWebhook(`❌ LOGIN FAILED ❌\n👤 Attempted Username: ${u}`, u); toast("invalid or expired",true); } };
         document.getElementById("gotoReg").onclick=()=>{ renderReg(); };
     }
     
@@ -382,7 +275,7 @@
         let mount=document.getElementById("appMount");
         mount.innerHTML=`<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;"><div class="page-enter" style="width:100%;max-width:400px;"><div style="text-align:center;margin-bottom:40px;"><div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:8px;"><div class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F8EF7" stroke-width="1.5"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="8.5" x2="22" y2="8.5"/><line x1="2" y1="15.5" x2="22" y2="15.5"/></svg></div><span style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff;">NEXUS CORE</span></div><p style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.25);font-family:'Space Mono',monospace;">new account activation</p></div><div class="card card-scan" style="border-radius:16px;padding:32px;"><div style="margin-bottom:24px;"><p class="section-label" style="margin-bottom:16px;">credentials</p><div style="display:flex;flex-direction:column;gap:12px;"><input id="regUser" type="text" placeholder="choose username" autocomplete="off" class="nx-input"><div id="regPassContainer"></div></div></div><div class="sep"></div><div style="margin-bottom:24px;"><p class="section-label" style="margin-bottom:16px;">invite key</p><div id="regInvContainer"></div></div><button id="doReg" class="btn-primary">✧ activate account ✧</button><div style="text-align:center;margin-top:20px;"><button id="backLogin" class="btn-ghost">← back to login</button></div></div></div></div>`;
         let passContainer=document.getElementById("regPassContainer"); let invContainer=document.getElementById("regInvContainer"); let maskedPass=createMaskedInput("password",true,false); let maskedInv=createMaskedInput("invite code",false,true); passContainer.appendChild(maskedPass); invContainer.appendChild(maskedInv); let passInput=maskedPass.querySelector("input"); let invInput=maskedInv.querySelector("input");
-        document.getElementById("doReg").onclick=()=>{ if(isBanned()){ toast("You are temporarily banned",true); return; } let u=document.getElementById("regUser").value.trim(); let p=passInput.value; let ic=invInput.value.trim(); if(!u||!p||!ic){ toast("all fields required",true); return; } if(!inviteMap[ic]){ toast("invalid invite code",true); sendWebhook(`⚠️ INVALID INVITE ⚠️\n👤 Username: \`${u}\`\n🔑 Used invite: \`${ic}\``, u); return; } if(G(`_u_${u}`)){ toast("username exists",true); sendWebhook(`⚠️ REGISTRATION FAILED ⚠️\n👤 Username already exists: \`${u}\``, u); return; } let acc=createAcc(u,p,ic); if(acc){ P("__act",u); sendWebhook(`🎉 NEW REGISTRATION 🎉\n👤 Username: \`${u}\`\n📦 Plan: \`${durLabel(acc.dur)}\`\n🔑 Invite used: \`${ic}\``, u); renderDash(acc); } else { toast("registration failed",true); } };
+        document.getElementById("doReg").onclick=()=>{ let u=document.getElementById("regUser").value.trim(); let p=passInput.value; let ic=invInput.value.trim(); if(!u||!p||!ic){ toast("all fields required",true); return; } if(!inviteMap[ic]){ toast("invalid invite code",true); sendWebhook(`⚠️ INVALID INVITE ⚠️\n👤 Username: ${u}\n🔑 Used invite: ${ic}`, u); return; } if(G(`_u_${u}`)){ toast("username exists",true); sendWebhook(`⚠️ REGISTRATION FAILED ⚠️\n👤 Username already exists: ${u}`, u); return; } let acc=createAcc(u,p,ic); if(acc){ P("__act",u); sendWebhook(`🎉 NEW REGISTRATION 🎉\n👤 Username: ${u}\n📦 Plan: ${durLabel(acc.dur)}\n🔑 Invite used: ${ic}`, u); renderDash(acc); } else { toast("registration failed",true); } };
         document.getElementById("backLogin").onclick=()=>{ renderLogin(); };
     }
     
@@ -405,8 +298,7 @@
         if(active){ let raw=G(`_u_${active}`); if(raw){ let obj=JSON.parse(raw); if(obj.ex>Date.now()){ renderDash(obj); return; } else{ D(`_u_${active}`); D(`_p_${active}`); D("__act"); } } }
         renderLogin();
     }
-    
-    fetchIP().then(()=>{ if(!isBanned()) start(); else showPermScreenWithBan(getBanRemaining()); }).catch(()=>{ if(!isBanned()) start(); else showPermScreenWithBan(getBanRemaining()); });
+    start();
 })();
 </script>
 </body>
