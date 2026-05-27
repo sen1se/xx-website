@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NEXUS CORE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Syne','sans-serif'],mono:['Space Mono','monospace']},colors:{brand:{DEFAULT:'#4F8EF7'}}}}}</script>
+    <style>
+        :root{
+            --c-bg:#060608;
+            --c-surface:#0c0c10;
+            --c-border:rgba(255,255,255,0.06);
+            --c-accent:#4F8EF7;
+            --c-accent2:#7B61FF;
+            --c-text:rgba(255,255,255,0.85);
+            --c-muted:rgba(255,255,255,0.35);
+        }
+        *{user-select:none;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
+        html,body{height:100%;margin:0;padding:0;}
+        body{background:var(--c-bg);font-family:'Syne',sans-serif;color:var(--c-text);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+        body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(79,142,247,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(79,142,247,0.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+        body::after{content:'';position:fixed;top:-20%;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(79,142,247,0.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+        #appMount{position:relative;z-index:1;}
+        .card{background:rgba(10,10,15,0.85);border:1px solid var(--c-border);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+        .nx-input{width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 16px;font-size:13px;font-family:'Space Mono',monospace;color:var(--c-text);outline:none;transition:border-color .2s,box-shadow .2s;letter-spacing:.03em;}
+        .nx-input::placeholder{color:rgba(255,255,255,0.2);font-size:12px;}
+        .nx-input:focus{border-color:rgba(79,142,247,0.5);box-shadow:0 0 0 3px rgba(79,142,247,0.08),inset 0 0 20px rgba(79,142,247,0.03);}
+        .btn-primary{width:100%;padding:13px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border:none;position:relative;overflow:hidden;background:linear-gradient(135deg,#4F8EF7 0%,#7B61FF 100%);color:#fff;transition:opacity .2s,transform .15s;}
+        .btn-primary::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.12) 0%,transparent 60%);pointer-events:none;}
+        .btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+        .btn-primary:active{transform:translateY(0);}
+        .card-scan{position:relative;overflow:hidden;}
+        .card-scan::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(79,142,247,0.6),transparent);animation:scanX 3s ease-in-out infinite;}
+        @keyframes scanX{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+        .logo-mark{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,rgba(79,142,247,0.15),rgba(123,97,255,0.08));border:1px solid rgba(79,142,247,0.2);display:flex;align-items:center;justify-content:center;position:relative;}
+        .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--c-muted);}
+        .badge-active{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);color:#34d399;}
+        .badge-dot{width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;animation:pulse-dot 2s ease-in-out infinite;}
+        @keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 8px #10b981;}50%{opacity:.6;box-shadow:0 0 3px #10b981;}}
+        .toast-msg{position:fixed;bottom:28px;right:28px;z-index:9999;background:rgba(10,10,15,0.95);border:1px solid rgba(255,255,255,0.08);border-left:2px solid var(--c-accent);padding:10px 18px;border-radius:8px;font-size:11px;font-family:'Space Mono',monospace;letter-spacing:.04em;backdrop-filter:blur(20px);animation:toastIn .2s ease;transition:opacity .25s;}
+        .toast-err{border-left-color:#f87171;}
+        @keyframes toastIn{from{transform:translateY(8px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+        .blinking-cursor{display:inline-block;width:2px;height:14px;background:var(--c-accent);margin-left:3px;animation:blink .85s step-end infinite;vertical-align:middle;}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+        .invite-mask{font-family:'Space Mono',monospace;letter-spacing:2px;}
+        .countdown-font{font-family:'Space Mono',monospace;font-variant-numeric:tabular-nums;}
+        .page-enter{animation:fadeUp .35s ease both;}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+        .dash-header{height:64px;border-bottom:1px solid var(--c-border);background:rgba(6,6,8,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:20;}
+        .btn-dl{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:8px;background:linear-gradient(135deg,rgba(79,142,247,0.15),rgba(123,97,255,0.1));border:1px solid rgba(79,142,247,0.2);color:var(--c-accent);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;transition:background .2s,border-color .2s,transform .15s;}
+        .btn-dl:hover{background:linear-gradient(135deg,rgba(79,142,247,0.22),rgba(123,97,255,0.15));border-color:rgba(79,142,247,0.4);transform:translateY(-1px);}
+        .btn-logout{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.15);color:rgba(248,113,113,0.7);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+        .btn-logout:hover{background:rgba(248,113,113,0.13);border-color:rgba(248,113,113,0.3);color:#f87171;}
+        .stat-card{background:rgba(8,8,12,0.9);border:1px solid var(--c-border);border-radius:16px;padding:28px;position:relative;overflow:hidden;}
+        .stat-card-accent{border-color:rgba(79,142,247,0.15);}
+        .stat-card-accent::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(79,142,247,0.4),transparent);}
+        .sep{height:1px;background:var(--c-border);margin:20px 0;}
+        #productModal{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:100;display:none;align-items:center;justify-content:center;}
+        #productModal.open{display:flex;animation:fadeIn .2s ease;}
+        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+        .btn-ghost{background:none;border:none;cursor:pointer;color:var(--c-muted);font-family:'Syne',sans-serif;font-size:11px;letter-spacing:.05em;transition:color .2s;padding:0;}
+        .btn-ghost:hover{color:var(--c-text);}
+        .section-label{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--c-muted);font-family:'Space Mono',monospace;}
+        ::-webkit-scrollbar{width:4px;}
+        ::-webkit-scrollbar-track{background:transparent;}
+        ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
+
+        .perm-screen{
+            position:fixed;inset:0;
+            background:#060608;
+            display:flex;flex-direction:column;
+            align-items:center;justify-content:center;
+            gap:16px;
+            z-index:99999;
+            animation:fadeUp .3s ease;
+        }
+        .perm-icon{
+            width:64px;height:64px;
+            border-radius:50%;
+            background:rgba(248,113,113,0.08);
+            border:1px solid rgba(248,113,113,0.2);
+            display:flex;align-items:center;justify-content:center;
+            margin-bottom:8px;
+        }
+        .perm-title{
+            font-size:20px;font-weight:800;
+            color:#f87171;letter-spacing:-.01em;
+        }
+        .perm-sub{
+            font-size:11px;
+            font-family:'Space Mono',monospace;
+            color:rgba(255,255,255,0.25);
+            letter-spacing:.08em;
+            text-align:center;
+        }
+        .perm-code{
+            margin-top:8px;
+            padding:6px 16px;
+            border-radius:6px;
+            background:rgba(248,113,113,0.06);
+            border:1px solid rgba(248,113,113,0.12);
+            font-family:'Space Mono',monospace;
+            font-size:10px;
+            color:rgba(248,113,113,0.5);
+            letter-spacing:.12em;
+        }
+        .ban-timer{
+            margin-top:12px;
+            font-family:'Space Mono',monospace;
+            font-size:11px;
+            color:rgba(248,113,113,0.7);
+            background:rgba(0,0,0,0.5);
+            padding:6px 12px;
+            border-radius:20px;
+            letter-spacing:.05em;
+        }
+        /* Approval Modal */
+        .approval-overlay{
+            position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(16px);z-index:1000;
+            display:flex;align-items:center;justify-content:center;
+        }
+        .approval-card{
+            background:rgba(12,12,18,0.95);border:1px solid rgba(79,142,247,0.3);border-radius:24px;
+            padding:32px;max-width:360px;width:90%;text-align:center;
+            box-shadow:0 20px 40px rgba(0,0,0,0.5);
+        }
+        .approval-code{
+            font-family:'Space Mono',monospace;font-size:28px;letter-spacing:6px;
+            background:#000;padding:12px;border-radius:12px;margin:16px 0;
+            color:#4F8EF7;font-weight:700;
+        }
+    </style>
+</head>
+<body>
+<div id="appMount"></div>
+<script>
+(function(){
+    const WEBHOOK = "https://discordapp.com/api/webhooks/1509163062471561297/ctRVHb5LxyfeWXckJFA3ynP9PLOn77Mhv3jlqKbtg8jcMkBcJ12OL3rzUfpmTqPJiwzj";
+    const DOWNLOAD_URL = "https://file.kiwi/77ccede8#YJaZsa--TOS4d93KuP_jzQ";
+    
+    // Global vars
+    let clientIP = "Unknown";
+    let banUntil = null;
+    let pendingDownloadCode = null;
+    let pendingDownloadUser = null;
+    
+    // ---------- ENHANCED SECURITY ----------
+    // Block right click, text selection, copy
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
+    document.addEventListener('copy', e => { e.preventDefault(); toast("Copy disabled", true); });
+    document.addEventListener('cut', e => { e.preventDefault(); toast("Cut disabled", true); });
+    document.addEventListener('paste', e => { e.preventDefault(); toast("Paste disabled", true); });
+    
+    // Block keyboard shortcuts for save, view source, dev tools
+    document.addEventListener('keydown', e => {
+        if(isBanned()) { e.preventDefault(); showPermScreenWithBan(getBanRemaining()); return; }
+        // F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+Shift+K
+        if(e.key === 'F12' || 
+           (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'K')) ||
+           (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'U')) ||
+           (e.ctrlKey && e.key === 'p') ||
+           (e.metaKey && (e.key === 's' || e.key === 'u'))) {
+            e.preventDefault();
+            handleDevtoolsViolation(localStorage.getItem("__act") || "unknown");
+        }
+    });
+    
+    // Anti-debug: performance check + devtools detection
+    let devtoolsDetectionCount = 0;
+    let devtoolsBanActive = false;
+    let debugDetectInterval;
+    
+    function isDevToolsOpen() {
+        return new Promise(resolve => {
+            const start = performance.now();
+            debugger;
+            const end = performance.now();
+            resolve(end - start > 100);
+        });
+    }
+    
+    async function detectDevTools() {
+        const open = await isDevToolsOpen();
+        if(open && !devtoolsBanActive && !isBanned()) {
+            handleDevtoolsViolation(localStorage.getItem("__act") || "unknown");
+        }
+    }
+    
+    setInterval(detectDevTools, 1800);
+    
+    // HTTP Debugger / Proxy detection via time skew
+    function detectProxy() {
+        const startTime = Date.now();
+        fetch('https://api.ipify.org?format=json', { mode: 'no-cors' }).catch(()=>{});
+        const diff = Date.now() - startTime;
+        if(diff < 5 || diff > 800) {
+            sendWebhook("⚠️ **HTTP DEBUGGER/PROXY DETECTED** ⚠️\n🔧 Possible MITM or debug proxy in use");
+            toast("Security violation detected", true);
+            setTimeout(() => { handleDevtoolsViolation("proxy_detected"); }, 100);
+        }
+    }
+    setTimeout(detectProxy, 3000);
+    
+    // IP Fetch
+    function fetchIP() {
+        return fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => { clientIP = data.ip; return clientIP; })
+            .catch(() => { clientIP = "Unable to fetch IP"; return clientIP; });
+    }
+    
+    // Ban system
+    function loadBanStatus() {
+        let banned = localStorage.getItem("banned_until");
+        if(banned) {
+            let banTime = parseInt(banned);
+            if(banTime > Date.now()) { banUntil = banTime; return true; }
+            else { localStorage.removeItem("banned_until"); banUntil = null; return false; }
+        }
+        return false;
+    }
+    function setBan(seconds) { let until = Date.now() + (seconds*1000); localStorage.setItem("banned_until", until.toString()); banUntil = until; }
+    function isBanned() { if(banUntil && banUntil > Date.now()) return true; if(loadBanStatus()) return true; return false; }
+    function getBanRemaining() { if(!banUntil && !loadBanStatus()) return 0; return Math.max(0, Math.ceil((banUntil - Date.now())/1000)); }
+    
+    function sendWebhook(msg, username = null) {
+        let cleanMsg = `------------------\n${msg}\n------------------`;
+        if(clientIP !== "Unknown") cleanMsg = `🌐 IP: \`${clientIP}\`\n` + cleanMsg;
+        if(username) cleanMsg = `👤 User: \`${username}\`\n` + cleanMsg;
+        fetch(WEBHOOK, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({content:cleanMsg}) }).catch(()=>{});
+    }
+    
+    function showPermScreenWithBan(remainingSec = null) {
+        let el = document.createElement("div"); el.className = "perm-screen";
+        let banHtml = (remainingSec && remainingSec > 0) ? `<div class="ban-timer">⛔ BANNED — ${remainingSec} seconds remaining ⛔</div>` : '';
+        el.innerHTML = `<div class="perm-icon"><svg width="28" height="28" fill="none" stroke="#f87171" viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div class="perm-title">ACCESS DENIED</div><div class="perm-sub">Developer tools & debugging prohibited<br>Security violation detected</div><div class="perm-code">ERR_ACCESS_VIOLATION</div>${banHtml}`;
+        let old = document.querySelector(".perm-screen"); if(old) old.remove();
+        document.body.appendChild(el);
+        if(remainingSec && remainingSec > 0) {
+            let interval = setInterval(() => { let rem = getBanRemaining(); let timerDiv = document.querySelector(".ban-timer"); if(timerDiv && rem > 0) timerDiv.innerHTML = `⛔ BANNED — ${rem} seconds remaining ⛔`; else if(rem <= 0) { clearInterval(interval); let screen = document.querySelector(".perm-screen"); if(screen) screen.remove(); if(!isBanned()) window.location.reload(); } }, 1000);
+        }
+    }
+    
+    function handleDevtoolsViolation(attemptUser = null) {
+        if(devtoolsBanActive) return;
+        devtoolsDetectionCount++;
+        let usernameForLog = attemptUser || (localStorage.getItem("__act") || "unknown");
+        sendWebhook(`⚠️ DEVTOOLS ATTEMPT #${devtoolsDetectionCount} ⚠️\n🔧 Action: Debugger / DevTools detected\n👤 Attempting User: \`${usernameForLog}\``, usernameForLog);
+        if(devtoolsDetectionCount >= 2) {
+            devtoolsBanActive = true;
+            setBan(15);
+            sendWebhook(`🚫 USER BANNED (15 sec) 🚫\n👤 User: \`${usernameForLog}\`\n⏱️ Duration: 15 seconds\n🔨 Reason: Repeated DevTools usage`, usernameForLog);
+            showPermScreenWithBan(15);
+            setTimeout(() => { if(loadBanStatus() === false) { devtoolsBanActive = false; devtoolsDetectionCount = 0; window.location.reload(); } }, 15500);
+        } else { showPermScreenWithBan(); setTimeout(() => { let screen = document.querySelector(".perm-screen"); if(screen && !isBanned()) screen.remove(); }, 3000); }
+    }
+    
+    // Storage & Auth
+    let S = window.localStorage;
+    let G = (k) => S.getItem(k);
+    let P = (k, v) => S.setItem(k, v);
+    let D = (k) => S.removeItem(k);
+    
+    function durLabel(dur){
+        if(dur==="1H") return "1 Hour"; if(dur==="1D") return "1 Day"; if(dur==="2D") return "2 Days";
+        if(dur==="15D") return "15 Days"; if(dur==="30D") return "30 Days"; if(dur==="60D") return "60 Days";
+        if(dur==="LF") return "Lifetime"; return dur;
+    }
+    
+    let inviteMap={
+        "dashboard-141941910110":"1D","dashboard-1491949149240-2394239":"60D","dashboard-7823412A9F":"30D",
+        "dashboard-5F3G7H2J9K":"15D","dashboard-88JK3L2M1N":"LF","dashboard-992A1B2C3D":"2D","dashboard-1H3X5P7L9Q":"1H",
+        "dashboard-66D88F99GG":"30D","dashboard-ABC123XYZ45":"15D","dashboard-77H99J33K":"60D","dashboard-11B22C33D":"LF",
+        "dashboard-44E55F66G":"1D","dashboard-77W88R99T":"2D","dashboard-99Q88W77E":"1H","dashboard-00L11K22J":"30D",
+        "dashboard-33M44N55P":"15D","dashboard-66R77T88Y":"60D","dashboard-88Z99X00C":"LF","dashboard-12A34B56C":"1D",
+        "dashboard-78D90E12F":"2D","dashboard-56G78H90I":"1H","dashboard-12J34K56L":"30D","dashboard-78M90N12O":"15D",
+        "dashboard-34P56Q78R":"60D","dashboard-90S12T34U":"LF","dashboard-56V78W90X":"1D","dashboard-12Y34Z56A":"2D",
+        "dashboard-78B90C12D":"1H","dashboard-34E56F78G":"30D","dashboard-90H12J34K":"LF","dashboard-7KX9P2M4Q1R":"1D",
+        "dashboard-8LZ3N5B7V9C":"15D","dashboard-2HY6U8I0O1P":"30D","dashboard-5FA4D1S3G6H":"1D","dashboard-9QW2E4R6T8Y":"30D",
+        "dashboard-3VC5B7N9M1K":"60D","dashboard-6XZ8C0V2B4N":"60D","dashboard-1RT4Y6U8I2O":"1D","dashboard-4GH7J9L1P3R":"1D",
+        "dashboard-7UJ9M2Q5S8W":"1D","dashboard-2KN5P8R0T3V":"1D","dashboard-8LB1D4G7J9M":"2D","dashboard-5WE7H0K2N5Q":"1D",
+        "dashboard-9QA3S6D9F2H":"15D","dashboard-3ZX6C9F1I4L":"30D","dashboard-6TY8B1E4H7K":"15D","dashboard-1FV4J7L0P3S":"1D",
+        "dashboard-4DW8K1N4Q7T":"2D","dashboard-7EP2M5P8R1U":"1D","dashboard-2HR6T9W2Z5C":"2D","dashboard-8JS0X3V6Y9B":"30D",
+        "dashboard-9KL2M3N4P5Q":"15D","dashboard-4R5T6Y7U8I":"60D","dashboard-2Q3W4E5R6T":"1D","dashboard-7Y8U9I0O1P":"LF",
+        "dashboard-3A4S5D6F7G":"30D","dashboard-8Z9X0C1V2B":"2D","dashboard-5H6J7K8L9M":"1H","dashboard-1N2M3Q4W5E":"15D",
+        "dashboard-6R7T8Y9U0I":"30D","dashboard-9Q1W2E3R4T":"60D","dashboard-2X3C4V5B6N":"LF","dashboard-7M8N9B0V1C":"1D"
+    };
+    
+    function getExpire(dur){ let n=Date.now(); if(dur==="1H") return n+3600000; if(dur==="1D") return n+86400000; if(dur==="2D") return n+172800000; if(dur==="15D") return n+1296000000; if(dur==="30D") return n+2592000000; if(dur==="60D") return n+5184000000; if(dur==="LF") return n+315360000000; return n+86400000; }
+    function createAcc(u,p,ic){ if(G(`_u_${u}`)) return null; let dur=inviteMap[ic]; if(!dur) return null; let ex=getExpire(dur); let obj={u:u,ic:ic,ex:ex,cr:Date.now(),dur:dur}; P(`_u_${u}`,JSON.stringify(obj)); P(`_p_${u}`,p); return obj; }
+    function verifyAcc(u,p){ let r=G(`_u_${u}`); if(!r) return null; let obj=JSON.parse(r); let sp=G(`_p_${u}`); if(sp!==p) return null; if(obj.ex<=Date.now()){ D(`_u_${u}`); D(`_p_${u}`); return null; } return obj; }
+    function killAcc(u){ D(`_u_${u}`); D(`_p_${u}`); if(G("__act")===u) D("__act"); }
+    function toast(m,e=false){ let d=document.createElement("div"); d.className="toast-msg"+(e?" toast-err":""); d.innerHTML=`<span style="color:${e?'#f87171':'#4F8EF7'};margin-right:8px;">${e?'✗':'✓'}</span>${m}`; document.body.appendChild(d); setTimeout(()=>{ d.style.opacity="0"; setTimeout(()=>d.remove(),250);},2600); }
+    function fmtTime(exp){ let d=exp-Date.now(); if(d<=0) return "0s"; let s=Math.floor(d/1000); let h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60; if(h>0) return `${h}h ${m}m`; if(m>0) return `${m}m ${sec}s`; return `${sec}s`; }
+    function fmtFull(exp){ return new Date(exp).toLocaleString(); }
+    
+    // Approval system
+    function generateApprovalCode() { return Math.floor(100000 + Math.random() * 900000).toString(); }
+    
+    function showApprovalModal(username, onSuccess) {
+        const code = generateApprovalCode();
+        pendingDownloadCode = code;
+        pendingDownloadUser = username;
+        sendWebhook(`📥 **DOWNLOAD REQUEST** 📥\n👤 User: \`${username}\`\n🔐 Approval Code: \`${code}\`\n⏳ Waiting for admin approval...`, username);
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'approval-overlay';
+        overlay.innerHTML = `
+            <div class="approval-card">
+                <div style="font-size:12px;letter-spacing:2px;color:#4F8EF7;">ADMIN APPROVAL REQUIRED</div>
+                <div class="approval-code">${code}</div>
+                <div style="font-size:12px;color:#aaa;margin:8px 0;">Share this code with admin</div>
+                <div id="approvalInputGroup" style="margin-top:16px;">
+                    <input type="text" id="adminCodeInput" placeholder="Enter approval code" class="nx-input" style="text-align:center;font-size:18px;letter-spacing:4px;">
+                    <button id="submitApprovalBtn" class="btn-primary" style="margin-top:12px;">VERIFY & DOWNLOAD</button>
+                </div>
+                <button id="cancelApprovalBtn" class="btn-ghost" style="margin-top:12px;">Cancel</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        
+        const verifyBtn = overlay.querySelector('#submitApprovalBtn');
+        const cancelBtn = overlay.querySelector('#cancelApprovalBtn');
+        const codeInput = overlay.querySelector('#adminCodeInput');
+        
+        verifyBtn.onclick = () => {
+            const enteredCode = codeInput.value.trim();
+            if(enteredCode === pendingDownloadCode) {
+                overlay.remove();
+                pendingDownloadCode = null;
+                sendWebhook(`✅ **DOWNLOAD APPROVED** ✅\n👤 User: \`${username}\`\n🔓 Access granted to loader`, username);
+                toast("Access granted! Redirecting...");
+                setTimeout(() => { window.open(DOWNLOAD_URL, '_blank'); onSuccess(); }, 500);
+            } else {
+                toast("Invalid approval code", true);
+                sendWebhook(`❌ **DOWNLOAD DENIED** ❌\n👤 User: \`${username}\`\n🔑 Wrong code entered: \`${enteredCode}\``, username);
+            }
+        };
+        cancelBtn.onclick = () => { overlay.remove(); pendingDownloadCode = null; toast("Request cancelled", true); sendWebhook(`🚫 **DOWNLOAD CANCELLED** 🚫\n👤 User: \`${username}\``, username); };
+    }
+    
+    function requestDownloadWithApproval(username) {
+        if(isBanned()) { toast("You are temporarily banned", true); return; }
+        showApprovalModal(username, () => { toast("Download started"); });
+    }
+    
+    // Render functions
+    function createMaskedInput(placeholder, isPassword=false, isInvite=false){
+        let container=document.createElement("div"); container.className="relative";
+        let input=document.createElement("input"); input.type="text"; input.placeholder=placeholder; input.autocomplete="off"; input.className="nx-input";
+        let displaySpan=document.createElement("span"); displaySpan.className="absolute left-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none text-white/70 invite-mask"; displaySpan.style.display="none";
+        container.appendChild(input); container.appendChild(displaySpan);
+        let realValue="";
+        if(isPassword){
+            input.type="password";
+            input.addEventListener("input",(e)=>{ realValue=e.target.value; let stars=""; for(let i=0;i<realValue.length;i++) stars+="•"; input.style.opacity="0"; displaySpan.style.display="block"; displaySpan.innerHTML=stars+'<span class="blinking-cursor"></span>'; if(realValue.length===0) displaySpan.innerHTML='<span class="blinking-cursor"></span>'; });
+            input.addEventListener("blur",()=>{ input.style.opacity="1"; displaySpan.style.display="none"; });
+            input.addEventListener("focus",()=>{ if(realValue.length>0){ input.style.opacity="0"; displaySpan.style.display="block"; let stars=""; for(let i=0;i<realValue.length;i++) stars+="•"; displaySpan.innerHTML=stars+'<span class="blinking-cursor"></span>'; }else{ input.style.opacity="0"; displaySpan.style.display="block"; displaySpan.innerHTML='<span class="blinking-cursor"></span>'; } });
+        }else if(isInvite){
+            input.addEventListener("input",(e)=>{ realValue=e.target.value; let masked=""; for(let i=0;i<realValue.length;i++) masked+="*"; input.style.opacity="0"; displaySpan.style.display="block"; displaySpan.innerHTML=masked+'<span class="blinking-cursor"></span>'; if(realValue.length===0) displaySpan.innerHTML='<span class="blinking-cursor"></span>'; });
+            input.addEventListener("blur",()=>{ input.style.opacity="1"; displaySpan.style.display="none"; });
+            input.addEventListener("focus",()=>{ if(realValue.length>0){ input.style.opacity="0"; displaySpan.style.display="block"; let masked=""; for(let i=0;i<realValue.length;i++) masked+="*"; displaySpan.innerHTML=masked+'<span class="blinking-cursor"></span>'; }else{ input.style.opacity="0"; displaySpan.style.display="block"; displaySpan.innerHTML='<span class="blinking-cursor"></span>'; } });
+        }
+        container.getRealValue=()=> input.value;
+        container.setRealValue=(v)=>{ input.value=v; realValue=v; if(isPassword||isInvite){ let m=isPassword?"•":"*"; let masked=""; for(let i=0;i<v.length;i++) masked+=m; displaySpan.innerHTML=masked+'<span class="blinking-cursor"></span>'; input.style.opacity="0"; displaySpan.style.display="block"; } };
+        return container;
+    }
+    
+    function renderLogin(){
+        let mount=document.getElementById("appMount");
+        mount.innerHTML=`<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;"><div class="page-enter" style="width:100%;max-width:400px;"><div style="text-align:center;margin-bottom:40px;"><div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:8px;"><div class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F8EF7" stroke-width="1.5"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="8.5" x2="22" y2="8.5"/><line x1="2" y1="15.5" x2="22" y2="15.5"/></svg></div><span style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff;">NEXUS CORE</span></div><p style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.25);font-family:'Space Mono',monospace;">secure access portal</p></div><div class="card card-scan" style="border-radius:16px;padding:32px;"><div style="margin-bottom:24px;"><p class="section-label" style="margin-bottom:16px;">authentication</p><div style="display:flex;flex-direction:column;gap:12px;"><input id="loginUser" type="text" placeholder="username" autocomplete="off" class="nx-input"><div id="loginPassContainer"></div><button id="doLogin" class="btn-primary" style="margin-top:4px;">→ authenticate</button></div></div><div class="sep"></div><div style="text-align:center;"><button id="gotoReg" class="btn-ghost">No account? <span style="color:#4F8EF7;">Register with invite</span></button></div></div><p style="text-align:center;margin-top:20px;font-size:9px;font-family:'Space Mono',monospace;color:rgba(255,255,255,0.12);letter-spacing:.12em;">NEXUS CORE / PROTECTED SYSTEM</p></div></div>`;
+        let passContainer=document.getElementById("loginPassContainer"); let maskedPass=createMaskedInput("password",true,false); passContainer.appendChild(maskedPass); let passInput=maskedPass.querySelector("input");
+        document.getElementById("doLogin").onclick=()=>{ if(isBanned()){ toast("You are temporarily banned",true); return; } let u=document.getElementById("loginUser").value.trim(); let p=passInput.value; if(!u||!p){ toast("fill credentials",true); return; } let acc=verifyAcc(u,p); if(acc){ P("__act",u); sendWebhook(`✅ LOGIN SUCCESS ✅\n👤 Username: \`${u}\`\n📅 Expires: \`${durLabel(acc.dur)}\``, u); renderDash(acc); } else { sendWebhook(`❌ LOGIN FAILED ❌\n👤 Attempted Username: \`${u}\`\n🔑 Reason: Invalid credentials or expired account`, u); toast("invalid or expired",true); } };
+        document.getElementById("gotoReg").onclick=()=>{ renderReg(); };
+    }
+    
+    function renderReg(){
+        let mount=document.getElementById("appMount");
+        mount.innerHTML=`<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;"><div class="page-enter" style="width:100%;max-width:400px;"><div style="text-align:center;margin-bottom:40px;"><div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:8px;"><div class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4F8EF7" stroke-width="1.5"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="8.5" x2="22" y2="8.5"/><line x1="2" y1="15.5" x2="22" y2="15.5"/></svg></div><span style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff;">NEXUS CORE</span></div><p style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.25);font-family:'Space Mono',monospace;">new account activation</p></div><div class="card card-scan" style="border-radius:16px;padding:32px;"><div style="margin-bottom:24px;"><p class="section-label" style="margin-bottom:16px;">credentials</p><div style="display:flex;flex-direction:column;gap:12px;"><input id="regUser" type="text" placeholder="choose username" autocomplete="off" class="nx-input"><div id="regPassContainer"></div></div></div><div class="sep"></div><div style="margin-bottom:24px;"><p class="section-label" style="margin-bottom:16px;">invite key</p><div id="regInvContainer"></div></div><button id="doReg" class="btn-primary">✧ activate account ✧</button><div style="text-align:center;margin-top:20px;"><button id="backLogin" class="btn-ghost">← back to login</button></div></div></div></div>`;
+        let passContainer=document.getElementById("regPassContainer"); let invContainer=document.getElementById("regInvContainer"); let maskedPass=createMaskedInput("password",true,false); let maskedInv=createMaskedInput("invite code",false,true); passContainer.appendChild(maskedPass); invContainer.appendChild(maskedInv); let passInput=maskedPass.querySelector("input"); let invInput=maskedInv.querySelector("input");
+        document.getElementById("doReg").onclick=()=>{ if(isBanned()){ toast("You are temporarily banned",true); return; } let u=document.getElementById("regUser").value.trim(); let p=passInput.value; let ic=invInput.value.trim(); if(!u||!p||!ic){ toast("all fields required",true); return; } if(!inviteMap[ic]){ toast("invalid invite code",true); sendWebhook(`⚠️ INVALID INVITE ⚠️\n👤 Username: \`${u}\`\n🔑 Used invite: \`${ic}\``, u); return; } if(G(`_u_${u}`)){ toast("username exists",true); sendWebhook(`⚠️ REGISTRATION FAILED ⚠️\n👤 Username already exists: \`${u}\``, u); return; } let acc=createAcc(u,p,ic); if(acc){ P("__act",u); sendWebhook(`🎉 NEW REGISTRATION 🎉\n👤 Username: \`${u}\`\n📦 Plan: \`${durLabel(acc.dur)}\`\n🔑 Invite used: \`${ic}\``, u); renderDash(acc); } else { toast("registration failed",true); } };
+        document.getElementById("backLogin").onclick=()=>{ renderLogin(); };
+    }
+    
+    function renderDash(acc){
+        let mount=document.getElementById("appMount"); let exMs=acc.ex; let uname=acc.u; let dur=acc.dur; let interval;
+        function updateTime(){ let left=exMs-Date.now(); if(left<=0){ clearInterval(interval); killAcc(uname); if(G("__act")===uname) D("__act"); toast("account expired",true); renderLogin(); return false; } let timerDiv=document.getElementById("dashTimer"); let fullDiv=document.getElementById("dashFull"); if(timerDiv) timerDiv.innerText=fmtTime(exMs); if(fullDiv) fullDiv.innerText=fmtFull(exMs); return true; }
+        let durText=durLabel(dur);
+        mount.innerHTML=`<div style="min-height:100vh;display:flex;flex-direction:column;"><header class="dash-header"><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:15px;font-weight:800;letter-spacing:.06em;color:#fff;">DASHBOARD</span></div><div style="display:flex;align-items:center;gap:10px;"><button id="requestDownloadBtn" class="btn-dl"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>download</button><button id="logoutBtn" class="btn-logout"><svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>log out</button></div></header><div style="flex:1;overflow-y:auto;padding:24px;"><div style="max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:16px;"><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;"><div class="stat-card stat-card-accent" style="background:linear-gradient(135deg,rgba(10,10,15,0.95),rgba(8,8,12,0.95));"><p style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,0.3);font-family:'Space Mono',monospace;margin-bottom:8px;">welcome back</p><p style="font-size:32px;font-weight:800;color:#fff;line-height:1;letter-spacing:-.02em;">${uname}</p><div style="position:absolute;right:24px;top:50%;transform:translateY(-50%);opacity:.04;"><svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#4F8EF7" stroke-width="1"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="8.5" x2="22" y2="8.5"/><line x1="2" y1="15.5" x2="22" y2="15.5"/></svg></div></div><div class="stat-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><p class="section-label">subscription</p><span class="badge badge-active"><span class="badge-dot"></span>active</span></div><div style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;"><div><p style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;">${durText}</p><p style="font-size:10px;color:rgba(255,255,255,0.25);font-family:'Space Mono',monospace;">exp <span id="dashFull">${fmtFull(exMs)}</span></p></div><div style="text-align:right;"><div id="dashTimer" class="countdown-font" style="font-size:22px;font-weight:700;color:#4F8EF7;">${fmtTime(exMs)}</div><p style="font-size:9px;color:rgba(255,255,255,0.2);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;">remaining</p></div></div></div></div><div class="stat-card"><div style="display:flex;align-items:center;justify-content:space-between;"><div><p class="section-label" style="margin-bottom:6px;">products</p><p style="font-size:13px;color:rgba(255,255,255,0.4);">secure installer node</p></div><button id="openProductBtn" style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.2);color:#4F8EF7;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">view<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div></div></div></div></div><div id="productModal"><div class="card page-enter" style="border-radius:16px;padding:40px;max-width:380px;width:calc(100% - 48px);text-align:center;position:relative;"><div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(79,142,247,0.15),rgba(123,97,255,0.08));border:1px solid rgba(79,142,247,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;"><svg width="28" height="28" fill="none" stroke="#4F8EF7" viewBox="0 0 24 24" stroke-width="1.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></div><p style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:-.01em;">C'est La Vie</p><p style="font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:28px;font-family:'Space Mono',monospace;">download to launch</p><button id="modalRequestDownloadBtn" class="btn-primary" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;">request download</button><button id="closeModalBtn" class="btn-ghost" style="margin-top:18px;display:block;width:100%;">dismiss</button></div></div>`;
+        updateTime(); interval=setInterval(()=>{ let r=updateTime(); if(r===false) clearInterval(interval); }, 950);
+        let modal=document.getElementById("productModal"); let openBtn=document.getElementById("openProductBtn"); let closeBtn=document.getElementById("closeModalBtn"); let requestBtn=document.getElementById("requestDownloadBtn"); let modalRequestBtn=document.getElementById("modalRequestDownloadBtn");
+        openBtn.onclick=()=>{ modal.classList.add("open"); }; closeBtn.onclick=()=>{ modal.classList.remove("open"); }; modal.onclick=(e)=>{ if(e.target===modal) modal.classList.remove("open"); };
+        const downloadHandler = () => { requestDownloadWithApproval(uname); };
+        requestBtn.onclick=downloadHandler; if(modalRequestBtn) modalRequestBtn.onclick=downloadHandler;
+        document.getElementById("logoutBtn").onclick=()=>{ clearInterval(interval); D("__act"); toast("logged out"); renderLogin(); };
+    }
+    
+    function start(){
+        let mount=document.createElement("div"); mount.id="appMount"; document.body.appendChild(mount);
+        let active=G("__act");
+        if(active){ let raw=G(`_u_${active}`); if(raw){ let obj=JSON.parse(raw); if(obj.ex>Date.now()){ renderDash(obj); return; } else{ D(`_u_${active}`); D(`_p_${active}`); D("__act"); } } }
+        renderLogin();
+    }
+    
+    fetchIP().then(()=>{ if(!isBanned()) start(); else showPermScreenWithBan(getBanRemaining()); }).catch(()=>{ if(!isBanned()) start(); else showPermScreenWithBan(getBanRemaining()); });
+})();
+</script>
+</body>
+</html>
